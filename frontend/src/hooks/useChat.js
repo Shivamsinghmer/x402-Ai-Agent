@@ -33,9 +33,12 @@ export const useChat = () => {
         hash: sendTxData,
     });
 
-    // Auto-scroll
+    // Auto-scroll to bottom on new messages or status changes
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        const timeoutId = setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+        }, 100);
+        return () => clearTimeout(timeoutId);
     }, [messages, status]);
 
     // Tx sent → pending

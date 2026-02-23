@@ -61,13 +61,14 @@ const ChatPage = () => {
             {/* ── Header ──────────────────────────────────────────── */}
             <header className={`flex items-center justify-between px-4 sm:px-6 py-3 border-b ${t.border} ${t.bg} transition-colors duration-300`}>
                 <div className="flex items-center gap-2.5">
-                    <div className={`w-8 h-8 rounded-lg ${t.aiBadge} flex items-center justify-center text-white text-xs font-bold`}>x4</div>
+                    <img
+                        src="https://imgs.search.brave.com/Lvr9Mhz7ILTJwG6JcX_Id_w8vpDk3dznBaIt0MGdBYI/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly93d3cu/eDQwMi5vcmcvX25l/eHQvaW1hZ2U_dXJs/PS9sb2dvcy9vcGVu/eDQwMi5wbmcmdz0y/NTYmcT03NSZkcGw9/ZHBsXzQ3NWNLRGRx/R004RVJmaWk0eGRp/WGphZ2hBUWY"
+                        alt="x402 Logo"
+                        className="w-8 h-8 rounded-lg object-contain"
+                    />
                     <h1 className={`text-base font-semibold ${t.text}`}>
                         x402 <span className={`${t.textFaint} font-normal`}>AI Agent</span>
                     </h1>
-                    <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-green-50 text-green-600 border border-green-200">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Sepolia
-                    </span>
                 </div>
                 <div className="flex items-center gap-3">
                     <span className={`hidden sm:inline text-xs ${t.textFaint}`}>0.001 ETH per query</span>
@@ -89,7 +90,11 @@ const ChatPage = () => {
                     {/* Welcome */}
                     {chat.messages.length === 0 && chat.isConnected && (
                         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center animate-fade-in">
-                            <div className={`w-14 h-14 rounded-2xl ${t.aiBadge} flex items-center justify-center text-white text-2xl font-bold mb-5 shadow-lg ${t.shadow}`}>x4</div>
+                            <img
+                                src="https://imgs.search.brave.com/Lvr9Mhz7ILTJwG6JcX_Id_w8vpDk3dznBaIt0MGdBYI/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly93d3cu/eDQwMi5vcmcvX25l/eHQvaW1hZ2U_dXJs/PS9sb2dvcy9vcGVu/eDQwMi5wbmcmdz0y/NTYmcT03NSZkcGw9/ZHBsXzQ3NWNLRGRx/R004RVJmaWk0eGRp/WGphZ2hBUWY"
+                                alt="x402 Logo"
+                                className="w-16 h-16 rounded-2xl object-contain mb-5"
+                            />
                             <h2 className={`text-2xl font-bold ${t.text} mb-2`}>What can I help you with?</h2>
                             <p className={`${t.textMuted} text-sm max-w-md mb-8`}>
                                 Ask about ETH gas trends, cheapest transaction strategies, L2 alternatives, or optimal timing. Each query costs 0.001 Sepolia ETH.
@@ -140,7 +145,11 @@ const ChatPage = () => {
                             {/* Assistant */}
                             {msg.role === "assistant" && (
                                 <div className="flex gap-3">
-                                    <div className={`w-7 h-7 rounded-lg ${t.aiBadge} flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 mt-0.5`}>AI</div>
+                                    <img
+                                        src="https://imgs.search.brave.com/Lvr9Mhz7ILTJwG6JcX_Id_w8vpDk3dznBaIt0MGdBYI/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly93d3cu/eDQwMi5vcmcvX25l/eHQvaW1hZ2U_dXJs/PS9sb2dvcy9vcGVu/eDQwMi5wbmcmdz0y/NTYmcT03NSZkcGw9/ZHBsXzQ3NWNLRGRx/R004RVJmaWk0eGRp/WGphZ2hBUWY"
+                                        alt="AI"
+                                        className="w-7 h-7 rounded-lg object-contain flex-shrink-0 mt-0.5"
+                                    />
                                     <div className="flex-1 min-w-0">
                                         {msg.data && (
                                             <div className="flex flex-wrap gap-2 mb-3">
@@ -211,7 +220,11 @@ const ChatPage = () => {
 
                     {(chat.status === STATUS.LOADING || chat.status === STATUS.ANALYZING) && (
                         <div className="flex gap-3 mb-5 animate-fade-in">
-                            <div className={`w-7 h-7 rounded-lg ${t.aiBadge} flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0`}>AI</div>
+                            <img
+                                src="https://imgs.search.brave.com/Lvr9Mhz7ILTJwG6JcX_Id_w8vpDk3dznBaIt0MGdBYI/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly93d3cu/eDQwMi5vcmcvX25l/eHQvaW1hZ2U_dXJs/PS9sb2dvcy9vcGVu/eDQwMi5wbmcmdz0y/NTYmcT03NSZkcGw9/ZHBsXzQ3NWNLRGRx/R004RVJmaWk0eGRp/WGphZ2hBUWY"
+                                alt="AI"
+                                className="w-7 h-7 rounded-lg object-contain flex-shrink-0"
+                            />
                             <div className={`flex items-center gap-2 text-sm ${t.textFaint}`}>
                                 <BounceDots dark={t.dark} />
                                 {chat.status === STATUS.ANALYZING ? "Analyzing network data..." : "Thinking..."}
