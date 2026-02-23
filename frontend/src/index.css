@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Markdown styles for AI responses */
+.ai-markdown h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 1rem 0 0.4rem;
+  color: #111827;
+}
+
+.ai-markdown h2:first-child {
+  margin-top: 0;
+}
+
+.ai-markdown p {
+  margin-bottom: 0.5rem;
+  color: #4b5563;
+  line-height: 1.7;
+}
+
+.ai-markdown strong {
+  color: #111827;
+}
+
+.ai-markdown ul,
+.ai-markdown ol {
+  margin-left: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: #4b5563;
+}
+
+.ai-markdown li {
+  margin-bottom: 0.2rem;
+}
+
+.ai-markdown code {
+  font-size: 0.85em;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  background: #f3f4f6;
+  color: #000000;
+}
+
+.ai-markdown hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 0.75rem 0;
+}
+
+/* Dark mode markdown */
+.ai-markdown-dark h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 1rem 0 0.4rem;
+  color: #f3f4f6;
+}
+
+.ai-markdown-dark h2:first-child {
+  margin-top: 0;
+}
+
+.ai-markdown-dark p {
+  margin-bottom: 0.5rem;
+  color: #d1d5db;
+  line-height: 1.7;
+}
+
+.ai-markdown-dark strong {
+  color: #f9fafb;
+}
+
+.ai-markdown-dark ul,
+.ai-markdown-dark ol {
+  margin-left: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: #d1d5db;
+}
+
+.ai-markdown-dark li {
+  margin-bottom: 0.2rem;
+}
+
+.ai-markdown-dark code {
+  font-size: 0.85em;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  background: #1f2937;
+  color: #e5e7eb;
+}
+
+.ai-markdown-dark hr {
+  border: none;
+  border-top: 1px solid #374151;
+  margin: 0.75rem 0;
+}
