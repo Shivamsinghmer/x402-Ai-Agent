@@ -50,10 +50,10 @@ const required = [
 
 for (const key of required) {
   if (!config[key]) {
-    console.error(`❌  Missing required env var: ${key}`);
-    console.error(`   Copy .env.example → .env and fill in your values.`);
-    process.exit(1);
+    console.warn(`⚠️  Missing environment variable: ${key}`);
+    // Do not process.exit(1) in production/Vercel as it kills the function
   }
 }
+
 
 export default config;

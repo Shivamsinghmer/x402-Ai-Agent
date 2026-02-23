@@ -10,11 +10,17 @@ const app = express();
 
 app.use(
     cors({
-        origin: [config.frontendUrl, "http://localhost:5173"],
-        methods: ["GET", "POST"],
+        origin: [
+            config.frontendUrl,
+            "http://localhost:5173",
+            "https://x402-ai-agent.vercel.app"
+        ],
+        methods: ["GET", "POST", "OPTIONS"],
         allowedHeaders: ["Content-Type", "x-wallet-address"],
+        credentials: true
     })
 );
+
 
 app.use(express.json());
 
