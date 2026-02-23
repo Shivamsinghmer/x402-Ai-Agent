@@ -78,8 +78,10 @@ const paymentRequired = async (req, res, next) => {
         console.error("Payment middleware error:", error);
         return res.status(500).json({
             status: "error",
-            message: "Internal server error in payment verification.",
+            message: `Payment verification failed: ${error.message}`,
+            suggestion: "Check your MONGODB_URI and ensure 0.0.0.0/0 is whitelisted in MongoDB Atlas."
         });
+
     }
 };
 

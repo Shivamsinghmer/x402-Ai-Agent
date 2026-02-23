@@ -60,9 +60,9 @@ app.get("/api/health", (req, res) => {
 });
 
 // ── Database Connection ──────────────────────────────────────
-// In serverless, we want to initiate the connection. Mongoose 
-// handles connection pooling and reuse.
+// In serverless, we initiate the connection immediately.
 connectDB();
+
 
 // ── Export for Vercel ─────────────────────────────────────────
 // For local development, we still want the server to listen on the port.

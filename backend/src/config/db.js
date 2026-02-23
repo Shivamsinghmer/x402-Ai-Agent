@@ -12,14 +12,19 @@ import config from "../config/index.js";
  * Mongoose handles reconnection automatically.
  */
 const connectDB = async () => {
+    // If already connected, don't re-connect
+    if (mongoose.connection.readyState >= 1) return;
+
     try {
-        const conn = await mongoose.connect(config.mongoUri);
+        const conn = await mongoose.connect(config.mongoUri, {
+            serverSelectionTimeoutMS: 5000, // Fail fast if can't connect
+        });
         console.log(`✅  MongoDB connected: ${conn.connection.host}`);
     } catch (error) {
         console.error(`❌  MongoDB connection error: ${error.message}`);
-        // In serverless, we don't want to exit the process
     }
 };
+
 
 
 export default connectDB;

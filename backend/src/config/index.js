@@ -42,6 +42,7 @@ const config = {
 // ── Validation ──────────────────────────────────────────────
 // Fail fast if critical env vars are missing
 const required = [
+  "mongoUri",
   "agentWalletAddress",
   "coinMarketCapApiKey",
   "etherscanApiKey",
