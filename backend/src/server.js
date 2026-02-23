@@ -19,8 +19,8 @@ app.use(
 app.use(express.json());
 
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, 
-    max: 100,                  
+    windowMs: 15 * 60 * 1000,
+    max: 100,
     standardHeaders: true,
     legacyHeaders: false,
     message: {
@@ -31,8 +31,8 @@ const limiter = rateLimit({
 app.use(limiter);
 
 const paymentLimiter = rateLimit({
-    windowMs: 5 * 60 * 1000, 
-    max: 10,                  
+    windowMs: 5 * 60 * 1000,
+    max: 10,
     message: {
         status: "error",
         message: "Too many payment verification attempts. Slow down.",
@@ -53,9 +53,15 @@ app.get("/api/health", (req, res) => {
     });
 });
 
-const start = async () => {
-    await connectDB();
+// ── Database Connection ──────────────────────────────────────
+// In serverless, we want to initiate the connection. Mongoose 
+// handles connection pooling and reuse.
+connectDB();
 
+// ── Export for Vercel ─────────────────────────────────────────
+// For local development, we still want the server to listen on the port.
+// Vercel ignores app.listen() and uses the exported app.
+if (process.env.NODE_ENV !== "production") {
     app.listen(config.port, () => {
         console.log(`
 ╔══════════════════════════════════════════════════╗
@@ -67,11 +73,9 @@ const start = async () => {
 ║      ${config.agentWalletAddress}  ║
 ║  💵  Required:   ${config.requiredPaymentEth} ETH                      ║
 ╚══════════════════════════════════════════════════╝
-    `);
+        `);
     });
-};
+}
 
-start().catch((err) => {
-    console.error("Failed to start server:", err);
-    process.exit(1);
-});
+export default app;
+
