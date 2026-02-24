@@ -4,6 +4,12 @@
 
 ---
 
+## 📺 Demo
+
+[![Demo Video](https://img.youtube.com/vi/KtPnthA_sxw/0.jpg)](https://youtu.be/KtPnthA_sxw)
+
+---
+
 ## 🏗️ Architecture Overview
 
 ```
