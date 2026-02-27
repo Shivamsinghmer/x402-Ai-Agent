@@ -104,7 +104,7 @@ export const verifyTransaction = async (txHash, senderAddress) => {
         if (tx.value < requiredWei) {
             return {
                 success: false,
-                message: `Insufficient payment. Required: ${config.requiredPaymentEth} ETH, received: ${ethers.formatEther(tx.value)} ETH.`,
+                message: `Insufficient payment. Required: ${config.requiredPaymentEth} Sepolia ETH, received: ${ethers.formatEther(tx.value)} Sepolia ETH.`,
             };
         }
 

@@ -1,16 +1,48 @@
-# React + Vite
+# ChainMind AI — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the React-based frontend for **ChainMind AI**, a premium Intelligence Oracle powered by AI and secured by the x402 payment protocol.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Intelligence Oracle Interface**: A professional, data-driven chat interface.
+- **Command Center Sidebar**: Persistent view of market analytics (ETH/SOL) and network health.
+- **Glassmorphic UI**: High-fidelity frosted glass components and premium typography.
+- **Interactive WebGL Background**: A dynamic mathematical orb that responds to user presence.
+- **x402 Protocol Integration**: Seamless payment gating via RainbowKit & Wagmi.
 
-## React Compiler
+## 🛠️ Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Framework**: React 19 + Vite
+- **Styling**: Tailwind CSS v4
+- **Web3**: RainbowKit, Wagmi, Viem
+- **Visuals**: OGL (WebGL) for the Orb background, Lucide React for icons.
 
-## Expanding the ESLint configuration
+## 🏃 Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1.  **Install Dependencies**:
+    ```bash
+    npm install
+    ```
+
+2.  **Environment Setup**:
+    Ensure the backend is running at `http://localhost:5000` (default).
+
+3.  **Start Development Server**:
+    ```bash
+    npm run dev
+    ```
+
+4.  **Build for Production**:
+    ```bash
+    npm run build
+    ```
+
+## 🏗️ Folder Structure
+
+- `/src/components`: Main UI components including `ChatPage` and `Orb`.
+- `/src/hooks`: Custom React hooks for theme and chat state.
+- `/src/config`: Web3 and API configurations.
+- `/src/services`: API client for backend communication.
+
+---
+Part of the **ChainMind AI** ecosystem.

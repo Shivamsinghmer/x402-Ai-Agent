@@ -3,6 +3,40 @@ import axios from "axios";
 import config from "../config/index.js";
 
 /**
+ * Fetch the current SOL price in USD from CoinMarketCap.
+ * @returns {{ price: number, percentChange24h: number, marketCap: number, volume24h: number }}
+ */
+export const getSolPrice = async () => {
+    try {
+        const response = await axios.get(
+            "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest",
+            {
+                params: { symbol: "SOL", convert: "USD" },
+                headers: {
+                    "X-CMC_PRO_API_KEY": config.coinMarketCapApiKey,
+                    Accept: "application/json",
+                },
+            }
+        );
+
+        const solData = response.data.data.SOL;
+        const quote = solData.quote.USD;
+
+        return {
+            price: quote.price,
+            percentChange1h: quote.percent_change_1h,
+            percentChange24h: quote.percent_change_24h,
+            percentChange7d: quote.percent_change_7d,
+            marketCap: quote.market_cap,
+            volume24h: quote.volume_24h,
+        };
+    } catch (error) {
+        console.error("CoinMarketCap API error (SOL):", error.message);
+        throw new Error("Failed to fetch SOL price from CoinMarketCap.");
+    }
+};
+
+/**
  * Fetch the current ETH price in USD from CoinMarketCap.
  * @returns {{ price: number, percentChange24h: number, marketCap: number, volume24h: number }}
  */
@@ -81,10 +115,11 @@ export const getGasPrices = async () => {
  * Structured text yields better reasoning.
  *
  * @param {object} ethPrice  – from getEthPrice()
+ * @param {object} solPrice  – from getSolPrice()
  * @param {object} gasPrices – from getGasPrices()
  * @returns {string}         – formatted context string
  */
-export const preprocessDataForLLM = (ethPrice, gasPrices) => {
+export const preprocessDataForLLM = (ethPrice, solPrice, gasPrices) => {
     // ── Calculate gas costs in USD ──────────────────────────────
     // Standard ETH transfer uses 21,000 gas
     const gasUnits = 21000;
@@ -109,31 +144,32 @@ export const preprocessDataForLLM = (ethPrice, gasPrices) => {
     // ── Build structured text ──────────────────────────────────
     return `
 ═══════════════════════════════════════════════════
-  ETHEREUM NETWORK STATUS — REAL-TIME DATA
+  BLOCKCHAIN NETWORK STATUS — REAL-TIME DATA
 ═══════════════════════════════════════════════════
 
-📊 ETH MARKET DATA:
+📊 ETHEREUM MARKET DATA:
   • Current Price: $${ethPrice.price.toFixed(2)} USD
-  • 1h Change:  ${ethPrice.percentChange1h?.toFixed(2)}%
   • 24h Change: ${ethPrice.percentChange24h?.toFixed(2)}%
-  • 7d Change:  ${ethPrice.percentChange7d?.toFixed(2)}%
   • Market Cap: $${(ethPrice.marketCap / 1e9).toFixed(2)}B
-  • 24h Volume: $${(ethPrice.volume24h / 1e9).toFixed(2)}B
 
-⛽ GAS PRICES (Gwei):
-  • 🟢 Safe (Low Priority):    ${gasPrices.safeGasPrice} Gwei → ~$${safeCostUsd} per transfer
-  • 🟡 Proposed (Standard):    ${gasPrices.proposeGasPrice} Gwei → ~$${proposeCostUsd} per transfer
-  • 🔴 Fast (High Priority):   ${gasPrices.fastGasPrice} Gwei → ~$${fastCostUsd} per transfer
-  • Base Fee:                  ${gasPrices.suggestBaseFee || "N/A"} Gwei
+📊 SOLANA MARKET DATA:
+  • Current Price: $${solPrice.price.toFixed(2)} USD
+  • 24h Change: ${solPrice.percentChange24h?.toFixed(2)}%
+  • Market Cap: $${(solPrice.marketCap / 1e9).toFixed(2)}B
 
-🚦 NETWORK CONGESTION: ${congestionLevel}
-  • Gas Used Ratio: ${gasPrices.gasUsedRatio || "N/A"}
+⛽ ETH GAS PRICES (Gwei):
+  • 🟢 Safe:    ${gasPrices.safeGasPrice} Gwei → ~$${safeCostUsd}
+  • 🟡 Proposed: ${gasPrices.proposeGasPrice} Gwei → ~$${proposeCostUsd}
+  • 🔴 Fast:     ${gasPrices.fastGasPrice} Gwei → ~$${fastCostUsd}
 
-💰 COST BREAKDOWN (Standard 21,000 gas transfer):
+🚦 ETH NETWORK CONGESTION: ${congestionLevel}
+
+💰 ETH COST BREAKDOWN (21,000 gas):
   • Cheapest: ${safeCostEth.toFixed(6)} ETH ($${safeCostUsd})
   • Standard: ${proposeCostEth.toFixed(6)} ETH ($${proposeCostUsd})
   • Fastest:  ${fastCostEth.toFixed(6)} ETH ($${fastCostUsd})
 
+💡 EXPERT NOTE: Solana transactions typically cost < $0.01.
 ═══════════════════════════════════════════════════
   `.trim();
 };

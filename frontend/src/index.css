@@ -1,13 +1,85 @@
+/* 
+CHANGES: 
+- VISUAL SIMPLICITY: Reduced color palette to Black, White, and Emerald (Clarity First).
+- CLARITY: Removed expressive fonts; standardized to Inter for instant readability.
+- SPACE: Increased base padding and line-heights to let content breathe (Gestalt).
+- LAYOUT: Simplified elevation system to a single border-based hierarchy.
+- SPEED: Kept transitions under 200ms for a "snappy" feel.
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@custom-variant dark (&:is(.dark *));
 
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  -webkit-font-smoothing: antialiased;
+:root {
+  --background: #ffffff;
+  --foreground: #09090b;
+  --border: #e4e4e7;
+  --primary: #10b981;
+  /* Emerald 500 */
+  --primary-foreground: #ffffff;
+  --muted: #71717a;
+  --muted-foreground: #a1a1aa;
+  --surface: #f4f4f5;
+  --surface-raised: #ffffff;
+  --ring: rgba(16, 185, 129, 0.2);
 }
 
-/* Custom scrollbar */
+.dark {
+  --background: #020617;
+  /* Slate 950 - deeper than pure black for rich contrast */
+  --foreground: #f8fafc;
+  --border: #1e293b;
+  --primary: #34d399;
+  /* Emerald 400 - slightly brighter for dark mode visibility */
+  --primary-foreground: #022c22;
+  --muted: #94a3b8;
+  --muted-foreground: #475569;
+  --surface: #0f172a;
+  --surface-raised: #1e293b;
+  --ring: rgba(52, 211, 153, 0.3);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  color: var(--foreground);
+  background: var(--background);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+}
+
+/* Minimalist Utilities */
+.text-gradient {
+  background: linear-gradient(135deg, var(--primary) 0%, #10b981 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}
+
+.bg-glass {
+  background: color-mix(in srgb, var(--surface-raised), transparent 20%);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+/* Clean Transitions (Speed) */
+button,
+a,
+input,
+textarea {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* Custom scrollbar (Minimal) */
 ::-webkit-scrollbar {
   width: 5px;
 }
@@ -17,19 +89,19 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
+  background: var(--border);
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+  background: var(--muted);
 }
 
-/* Fade in animation */
+/* Functional Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
   }
 
   to {
@@ -39,99 +111,30 @@ body {
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.3s ease-out forwards;
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-/* Markdown styles for AI responses */
-.ai-markdown h2 {
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin: 1rem 0 0.4rem;
-  color: #111827;
+@theme inline {
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-muted: var(--muted);
 }
 
-.ai-markdown h2:first-child {
-  margin-top: 0;
-}
+@layer base {
+  * {
+    @apply border-border;
+  }
 
-.ai-markdown p {
-  margin-bottom: 0.5rem;
-  color: #4b5563;
-  line-height: 1.7;
-}
-
-.ai-markdown strong {
-  color: #111827;
-}
-
-.ai-markdown ul,
-.ai-markdown ol {
-  margin-left: 1.2rem;
-  margin-bottom: 0.5rem;
-  color: #4b5563;
-}
-
-.ai-markdown li {
-  margin-bottom: 0.2rem;
-}
-
-.ai-markdown code {
-  font-size: 0.85em;
-  padding: 0.1rem 0.3rem;
-  border-radius: 4px;
-  background: #f3f4f6;
-  color: #000000;
-}
-
-.ai-markdown hr {
-  border: none;
-  border-top: 1px solid #e5e7eb;
-  margin: 0.75rem 0;
-}
-
-/* Dark mode markdown */
-.ai-markdown-dark h2 {
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin: 1rem 0 0.4rem;
-  color: #f3f4f6;
-}
-
-.ai-markdown-dark h2:first-child {
-  margin-top: 0;
-}
-
-.ai-markdown-dark p {
-  margin-bottom: 0.5rem;
-  color: #d1d5db;
-  line-height: 1.7;
-}
-
-.ai-markdown-dark strong {
-  color: #f9fafb;
-}
-
-.ai-markdown-dark ul,
-.ai-markdown-dark ol {
-  margin-left: 1.2rem;
-  margin-bottom: 0.5rem;
-  color: #d1d5db;
-}
-
-.ai-markdown-dark li {
-  margin-bottom: 0.2rem;
-}
-
-.ai-markdown-dark code {
-  font-size: 0.85em;
-  padding: 0.1rem 0.3rem;
-  border-radius: 4px;
-  background: #1f2937;
-  color: #e5e7eb;
-}
-
-.ai-markdown-dark hr {
-  border: none;
-  border-top: 1px solid #374151;
-  margin: 0.75rem 0;
+  body {
+    @apply bg-background text-foreground;
+  }
 }

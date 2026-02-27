@@ -1,16 +1,13 @@
-// ── Chat + payment flow logic ──────────────────────────────────
+// ── Chat hook — ask once before auto-paying ───────────────────
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useAccount, useSendTransaction, useWaitForTransactionReceipt } from "wagmi";
-import { parseEther } from "viem";
-import { queryAgent, verifyPayment } from "../services/api";
+import { useAccount } from "wagmi";
+import { queryAgent, agentAutoPay } from "../services/api";
 
 export const STATUS = {
     IDLE: "idle",
     LOADING: "loading",
-    PAYMENT_REQUIRED: "payment_required",
-    SENDING_PAYMENT: "sending_payment",
-    TX_PENDING: "tx_pending",
-    VERIFYING: "verifying",
+    PAYMENT_CONFIRM: "payment_confirm",   // Waiting for user to confirm
+    AUTO_PAYING: "auto_paying",           // Agent paying on-chain
     ANALYZING: "analyzing",
     SUCCESS: "success",
     ERROR: "error",
@@ -27,12 +24,6 @@ export const useChat = () => {
     const [pendingQuery, setPendingQuery] = useState(null);
     const [error, setError] = useState(null);
 
-    const { sendTransaction, data: sendTxData, error: sendError } =
-        useSendTransaction();
-    const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-        hash: sendTxData,
-    });
-
     // Auto-scroll to bottom on new messages or status changes
     useEffect(() => {
         const timeoutId = setTimeout(() => {
@@ -41,55 +32,53 @@ export const useChat = () => {
         return () => clearTimeout(timeoutId);
     }, [messages, status]);
 
-    // Tx sent → pending
-    useEffect(() => {
-        if (sendTxData) setStatus(STATUS.TX_PENDING);
-    }, [sendTxData]);
-
-    // Tx error
-    useEffect(() => {
-        if (sendError) {
-            setError(sendError.shortMessage || sendError.message || "Transaction rejected.");
-            setStatus(STATUS.ERROR);
-        }
-    }, [sendError]);
-
-    // Tx confirmed → verify
-    useEffect(() => {
-        if (isConfirmed && sendTxData && address) {
-            verifyOnChain(sendTxData);
-        }
-    }, [isConfirmed, sendTxData, address]);
-
-    const verifyOnChain = async (hash) => {
-        setStatus(STATUS.VERIFYING);
-        try {
-            const result = await verifyPayment(hash, address);
-            if (result.status === "payment_verified") {
-                addMessage("system", "✅ Payment verified! Processing your query...");
-                if (pendingQuery) setTimeout(() => runQuery(pendingQuery), 300);
-            } else {
-                setError(result.message || "Verification failed.");
-                setStatus(STATUS.ERROR);
-            }
-        } catch (err) {
-            setError(err.response?.data?.message || err.message || "Verification failed.");
-            setStatus(STATUS.ERROR);
-        }
-    };
-
     const addMessage = (role, content, data) => {
         setMessages((prev) => [...prev, { role, content, ...(data && { data }) }]);
     };
 
-    const runQuery = async (q) => {
+    // ── User confirms payment → agent pays autonomously ──────
+    const confirmAutoPay = async () => {
+        setStatus(STATUS.AUTO_PAYING);
+        addMessage("system", "🤖 Agent is paying autonomously...");
+
+        try {
+            const result = await agentAutoPay(address);
+
+            if (result.status === "auto_pay_success") {
+                addMessage(
+                    "system",
+                    `✅ Paid **${result.payment.amountEth} ETH** — [tx ↗](https://sepolia.etherscan.io/tx/${result.payment.transactionHash})`
+                );
+                // Now retry the query — payment credit is ready
+                if (pendingQuery) {
+                    setTimeout(() => runQuery(pendingQuery, true), 300);
+                }
+            } else {
+                setError(result.message || "Auto-pay failed.");
+                setStatus(STATUS.ERROR);
+            }
+        } catch (err) {
+            console.error("Auto-pay error:", err);
+            const msg = err.response?.data?.message || err.message || "Auto-pay failed.";
+            addMessage("system", `⚠️ Auto-pay failed: ${msg}`);
+            setError(msg);
+            setStatus(STATUS.ERROR);
+        }
+    };
+
+    const runQuery = async (q, skipAddUserMsg = false) => {
+        if (!skipAddUserMsg) {
+            addMessage("user", q);
+        }
         setStatus(STATUS.ANALYZING);
         setError(null);
+
         try {
             const result = await queryAgent(q, address);
             const d = result.data;
             addMessage("assistant", d.aiAnalysis, {
                 ethPrice: d.ethPrice,
+                solPrice: d.solPrice,
                 gasPrices: d.gasPrices,
                 model: d.model,
                 timestamp: d.timestamp,
@@ -98,13 +87,14 @@ export const useChat = () => {
             setPendingQuery(null);
         } catch (err) {
             if (err.response?.status === 402) {
+                // Show confirmation prompt — don't auto-pay yet
                 setPaymentInfo(err.response.data);
                 setPendingQuery(q);
-                setStatus(STATUS.PAYMENT_REQUIRED);
-                addMessage("system", `💳 Payment required: **${err.response.data.amount}** on Sepolia to access AI agent.`);
+                setStatus(STATUS.PAYMENT_CONFIRM);
                 return;
             }
-            setError(err.response?.data?.message || err.message || "Query failed.");
+            const msg = err.response?.data?.message || err.message || "Query failed.";
+            setError(msg);
             setStatus(STATUS.ERROR);
         }
     };
@@ -113,24 +103,15 @@ export const useChat = () => {
         (e) => {
             e?.preventDefault();
             if (!query.trim() || !address) return;
-            addMessage("user", query.trim());
+            const q = query.trim();
+            addMessage("user", q);
             setQuery("");
             setError(null);
             setStatus(STATUS.LOADING);
-            runQuery(query.trim());
+            runQuery(q, true);
         },
         [query, address]
     );
-
-    const handlePayment = useCallback(() => {
-        if (!paymentInfo) return;
-        setStatus(STATUS.SENDING_PAYMENT);
-        setError(null);
-        sendTransaction({
-            to: paymentInfo.payment_address,
-            value: parseEther("0.001"),
-        });
-    }, [paymentInfo, sendTransaction]);
 
     const handleKeyDown = (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -144,11 +125,21 @@ export const useChat = () => {
         setError(null);
     };
 
+    const clearChat = () => {
+        setMessages([]);
+        setStatus(STATUS.IDLE);
+        setQuery("");
+        setPendingQuery(null);
+        setPaymentInfo(null);
+        setError(null);
+    };
+
     return {
         // State
         address, isConnected, query, setQuery, status, messages,
-        paymentInfo, error, sendTxData, messagesEndRef,
+        paymentInfo, error, messagesEndRef,
         // Actions
-        handleSubmit, handlePayment, handleKeyDown, dismissError,
+        handleSubmit, handleKeyDown, dismissError, clearChat, runQuery,
+        confirmAutoPay,
     };
 };

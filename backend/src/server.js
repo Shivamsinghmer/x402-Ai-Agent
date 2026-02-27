@@ -53,25 +53,20 @@ app.use("/api/verify-payment", paymentLimiter);
 app.get("/api/health", (req, res) => {
     res.json({
         status: "ok",
-        service: "x402-ai-agent",
+        service: "chainmind-ai",
         network: "Sepolia Testnet",
         timestamp: new Date().toISOString(),
     });
 });
 
-// ── Database Connection ──────────────────────────────────────
-// In serverless, we initiate the connection immediately.
 connectDB();
 
 
-// ── Export for Vercel ─────────────────────────────────────────
-// For local development, we still want the server to listen on the port.
-// Vercel ignores app.listen() and uses the exported app.
 if (process.env.NODE_ENV !== "production") {
     app.listen(config.port, () => {
         console.log(`
 ╔══════════════════════════════════════════════════╗
-║           x402 AI Agent — Backend                ║
+║           ChainMind AI — Backend                 ║
 ╠══════════════════════════════════════════════════╣
 ║  🚀  Server:     http://localhost:${config.port}          ║
 ║  🔗  Network:    Sepolia Testnet                 ║

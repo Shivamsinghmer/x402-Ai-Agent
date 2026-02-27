@@ -73,4 +73,31 @@ export const checkPaymentStatus = async (walletAddress) => {
     return response.data.hasPaid;
 };
 
+/**
+ * Trigger the backend to auto-pay from the agent's own wallet.
+ * No MetaMask interaction needed — the agent signs the tx server-side.
+ * @param {string} walletAddress – The user's wallet address to credit
+ * @returns {Promise<object>} – { status, message, payment }
+ */
+export const agentAutoPay = async (walletAddress) => {
+    try {
+        const response = await api.post("/agent-auto-pay", { walletAddress });
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw error;
+        }
+        throw new Error("Network error — is the backend running?");
+    }
+};
+
+/**
+ * Get the agent wallet's balance and address.
+ * @returns {Promise<{ address: string, balanceEth: string }>}
+ */
+export const getAgentWalletInfo = async () => {
+    const response = await api.get("/agent-wallet-info");
+    return response.data.wallet;
+};
+
 export default api;

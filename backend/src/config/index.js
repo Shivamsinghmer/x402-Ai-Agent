@@ -13,12 +13,20 @@ const config = {
   port: process.env.PORT || 5000,
 
   // ── MongoDB ───────────────────────────────────────────────
-  mongoUri: process.env.MONGODB_URI || "mongodb://localhost:27017/x402agent",
+  mongoUri: process.env.MONGODB_URI || "mongodb://localhost:27017/chainmind",
 
   // ── Agent Wallet ──────────────────────────────────────────
   // The wallet that receives the 0.001 ETH toll payment
   agentWalletAddress: process.env.AGENT_WALLET_ADDRESS,
 
+  // ── Agent Private Key ─────────────────────────────────────
+  // Private key of the agent's funded wallet (used for auto-pay)
+  // The agent signs transactions with this key to pay on behalf of users
+  agentPrivateKey: process.env.AGENT_PRIVATE_KEY,
+
+  // ── Payment Receiver ────────────────────────────────────
+  // Where the auto-pay ETH goes (can be same as agentWalletAddress)
+  paymentReceiverAddress: process.env.PAYMENT_RECEIVER_ADDRESS,
   // ── Payment ───────────────────────────────────────────────
   // Amount in ETH the user must pay before accessing the AI
   requiredPaymentEth: process.env.REQUIRED_PAYMENT_ETH || "0.001",

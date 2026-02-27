@@ -8,10 +8,7 @@
 //   2. Check MongoDB for an UNUSED payment credit
 //   3. If has unused credit → next() (proceed to the route)
 //   4. If NO unused credit → 402 Payment Required
-//
-// This implements the x402 pattern where the server tells the
-// client exactly how much to pay and where to send it, similar
-// to HTTP 401 returning auth challenge details.
+//      (Frontend will show confirmation, then call /agent-auto-pay)
 // ============================================================
 
 import { hasUnusedPayment } from "../services/paymentService.js";
@@ -19,7 +16,8 @@ import config from "../config/index.js";
 
 /**
  * Express middleware that gates routes behind a payment wall.
- * Attach to any route that requires a payment.
+ * Returns 402 if no credit exists — the frontend handles
+ * showing a confirmation prompt and triggering auto-pay.
  *
  * Expects header: x-wallet-address
  */
@@ -54,12 +52,11 @@ const paymentRequired = async (req, res, next) => {
         }
 
         // ── 402 Payment Required ──────────────────────────────────
-        // No unused credits → return payment instructions
-        // Each query requires a fresh 0.001 ETH payment
+        // Frontend will show a confirmation prompt, then call
+        // /api/agent-auto-pay to pay from the agent's wallet
         return res.status(402).json({
             status: "payment_required",
-            message:
-                "Each query requires a payment of 0.001 ETH. Send ETH to the address below.",
+            message: "This query requires a payment of 0.001 ETH.",
             amount: `${config.requiredPaymentEth} ETH`,
             amountWei: (
                 parseFloat(config.requiredPaymentEth) * 1e18
@@ -67,12 +64,6 @@ const paymentRequired = async (req, res, next) => {
             payment_address: config.agentWalletAddress,
             network: "Sepolia Testnet",
             chainId: 11155111,
-            instructions: [
-                "1. Send the specified amount to the payment address",
-                "2. Wait for transaction confirmation",
-                "3. Call /api/verify-payment with the transaction hash",
-                "4. Access the AI agent endpoint again",
-            ],
         });
     } catch (error) {
         console.error("Payment middleware error:", error);
@@ -81,7 +72,6 @@ const paymentRequired = async (req, res, next) => {
             message: `Payment verification failed: ${error.message}`,
             suggestion: "Check your MONGODB_URI and ensure 0.0.0.0/0 is whitelisted in MongoDB Atlas."
         });
-
     }
 };
 

@@ -1,29 +1,14 @@
-// ============================================================
-// x402 AI Agent — Payment Routes
-// ============================================================
-// Endpoints:
-//   POST /api/verify-payment  — Verify a Sepolia tx on-chain
-//   GET  /api/payment-status  — Check if a wallet has paid
-// ============================================================
 
 import { Router } from "express";
 import { verifyTransaction, hasUnusedPayment } from "../services/paymentService.js";
+import { executeAutoPay, getAgentWalletInfo } from "../services/autoPayService.js";
+import Payment from "../models/Payment.js";
 
 const router = Router();
 
-/**
- * POST /api/verify-payment
- *
- * Receives a transaction hash from the frontend and verifies it
- * on-chain using ethers.js. If valid, stores it in MongoDB.
- *
- * Body: { transactionHash: string, walletAddress: string }
- */
 router.post("/verify-payment", async (req, res) => {
     try {
         const { transactionHash, walletAddress } = req.body;
-
-        // ── Input validation ────────────────────────────────────
         if (!transactionHash || !walletAddress) {
             return res.status(400).json({
                 status: "error",
@@ -45,7 +30,6 @@ router.post("/verify-payment", async (req, res) => {
             });
         }
 
-        // ── Verify on-chain ─────────────────────────────────────
         console.log(
             `🔍 Verifying tx: ${transactionHash} from ${walletAddress}`
         );
@@ -79,14 +63,96 @@ router.post("/verify-payment", async (req, res) => {
     }
 });
 
-/**
- * GET /api/payment-status
- *
- * Quick check to see if a wallet has already paid.
- * Useful for the frontend to restore state on page refresh.
- *
- * Query: ?walletAddress=0x...
- */
+// ── Agent Auto-Pay ──────────────────────────────────────────
+// The agent pays from its own wallet — no MetaMask needed.
+// 1. Sends ETH from AGENT_PRIVATE_KEY wallet
+// 2. Automatically verifies the on-chain tx
+// 3. Returns ready-to-use payment credit
+router.post("/agent-auto-pay", async (req, res) => {
+    try {
+        const { walletAddress } = req.body;
+
+        if (!walletAddress) {
+            return res.status(400).json({
+                status: "error",
+                message: "walletAddress is required (the user's address to credit).",
+            });
+        }
+
+        console.log(`🤖 Agent auto-pay initiated for user: ${walletAddress}`);
+
+        // ── Step 1: Execute the on-chain payment ────────────────
+        const payResult = await executeAutoPay();
+
+        if (!payResult.success) {
+            return res.status(500).json({
+                status: "auto_pay_failed",
+                message: payResult.error,
+            });
+        }
+
+        // ── Step 2: Create payment credit for the USER ──────────
+        // The agent paid on-chain, so we directly credit the user.
+        // (We skip verifyTransaction because the agent is trusted.)
+        const payment = await Payment.create({
+            walletAddress: walletAddress.toLowerCase(),
+            transactionHash: payResult.transactionHash,
+            amountEth: payResult.amountEth,
+            amountWei: (parseFloat(payResult.amountEth) * 1e18).toString(),
+            blockNumber: payResult.blockNumber,
+            verified: true,
+            used: false,
+        });
+
+        if (!payment) {
+            return res.status(500).json({
+                status: "credit_failed",
+                message: "Payment was sent but could not be credited.",
+                transactionHash: payResult.transactionHash,
+            });
+        }
+
+        console.log(`✅ Auto-pay complete: ${payResult.transactionHash}`);
+
+        return res.status(200).json({
+            status: "auto_pay_success",
+            message: "Agent paid and verified automatically ✅",
+            payment: {
+                transactionHash: payResult.transactionHash,
+                from: payResult.from,
+                to: payResult.to,
+                amountEth: payResult.amountEth,
+                blockNumber: payResult.blockNumber,
+                creditedTo: walletAddress,
+            },
+        });
+    } catch (error) {
+        console.error("Agent auto-pay error:", error);
+        return res.status(500).json({
+            status: "error",
+            message: `Auto-pay failed: ${error.message}`,
+        });
+    }
+});
+
+// ── Agent Wallet Info ────────────────────────────────────────
+// Returns agent wallet balance so the UI can show remaining funds
+router.get("/agent-wallet-info", async (req, res) => {
+    try {
+        const info = await getAgentWalletInfo();
+        return res.status(200).json({
+            status: "success",
+            wallet: info,
+        });
+    } catch (error) {
+        console.error("Wallet info error:", error);
+        return res.status(500).json({
+            status: "error",
+            message: error.message,
+        });
+    }
+});
+
 router.get("/payment-status", async (req, res) => {
     try {
         const { walletAddress } = req.query;

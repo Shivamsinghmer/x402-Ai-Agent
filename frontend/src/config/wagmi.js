@@ -25,14 +25,15 @@ import { http } from "wagmi";
  * with your own from https://cloud.walletconnect.com
  */
 const wagmiConfig = getDefaultConfig({
-    appName: "x402 AI Agent",
-    // WalletConnect Cloud project ID
-    // Get your own FREE at: https://cloud.walletconnect.com
+    appName: "ChainMind AI",
     projectId: "21fef48091f12692cad574a6f7753643",
     chains: [sepolia],
     transports: {
         [sepolia.id]: http(),
     },
+    appDescription: "ChainMind AI - Your autonomous cross-chain intelligence oracle",
+    appUrl: "https://chainmind-ai.vercel.app",
+    appIcon: "https://api.dicebear.com/9.x/bottts/svg?seed=ChainMind",
     ssr: false,
 });
 

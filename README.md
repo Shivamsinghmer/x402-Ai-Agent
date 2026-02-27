@@ -1,6 +1,6 @@
-# x402 AI Agent — Payment-Gated Gas Optimization
+# ChainMind AI — Intelligence Oracle
 
-> A full-stack AI Agent system implementing the **x402-style payment-gated protocol** on Sepolia testnet. Users pay 0.001 ETH to access real-time gas optimization advice powered by gpt-oss-120b.
+> A premium, full-stack AI Analyst implementing the **x402 payment-gated protocol** on Sepolia testnet. Users access real-time cross-chain intelligence, market analytics, and gas optimization (Ethereum & Solana) via a professional high-fidelity interface.
 
 ---
 
@@ -35,8 +35,8 @@
 │  │ MongoDB  │  │ Ethers.js    │  │  External APIs   │       │
 │  │(Payments)│  │(On-chain     │  │  CoinMarketCap   │       │
 │  │          │  │ verification)│  │  Etherscan Gas   │       │
-│  └──────────┘  └──────────────┘  │  Groq LLM        │       │
-│                                   └──────────────────┘       │
+│  │          │  │              │  │  Groq LLM        │       │
+│  └──────────┘  └──────────────┘  └──────────────────┘       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -51,7 +51,7 @@ User visits site
 Connect MetaMask (Sepolia)
     │
     ▼
-User asks gas optimization question
+Analyze Market Intelligence
     │
     ▼
 Frontend sends POST /api/agent/query
@@ -60,7 +60,7 @@ Frontend sends POST /api/agent/query
     ▼
 Backend checks: Has this wallet paid?
     │
-    ├── YES → Fetch data → LLM → Return AI response
+    ├── YES → Fetch Data → LLM → Return Intelligence
     │
     └── NO → Return HTTP 402 Payment Required
               {
@@ -71,10 +71,10 @@ Backend checks: Has this wallet paid?
               }
               │
               ▼
-        Frontend detects 402
+        Frontend triggers confirmation
               │
               ▼
-        User clicks "Pay 0.001 ETH"
+        User clicks "Confirm & Pay"
               │
               ▼
         MetaMask sends Sepolia ETH
@@ -89,25 +89,36 @@ Backend checks: Has this wallet paid?
               ▼
         Backend verifies on-chain:
           ✓ tx exists on Sepolia
-          ✓ tx.to == agent wallet
+          ✓ tx.to == agent wallet (ChainMind Oracle)
           ✓ tx.value >= 0.001 ETH
-          ✓ tx is mined (not reverted)
-          ✓ sender matches
-          ✓ not duplicate
+          ✓ tx matches sender & is unique
               │
               ▼
         Store payment in MongoDB
               │
               ▼
-        Re-run original query → AI response
+        Re-run original request → AI Response 🎉
 ```
+
+---
+
+## ✨ Features & UI
+
+| Feature | Description |
+|---------|-------------|
+| **Command Center** | Persistent left sidebar for quick-glance market data & network vitals. |
+| **Market Brief** | Live price feeds for ETH and SOL integrated directly into the dashboard. |
+| **Network Vitals** | Real-time Gas tracker (Gwei) and network latency monitoring. |
+| **Glassmorphism** | High-fidelity frosted glass message bubbles and UI elements for a premium feel. |
+| **Dynamic Orb** | Mathematical WebGL background that responds to user presence and interactions. |
+| **Oracle v1.0** | Professional-grade analytical tone focusing on data-driven cross-chain insights. |
 
 ---
 
 ## 📂 Folder Structure
 
 ```
-x402aiagent/
+chainmind-ai/
 ├── backend/
 │   ├── .env.example          # Environment variables template
 │   ├── package.json
@@ -133,20 +144,14 @@ x402aiagent/
 │   ├── package.json
 │   └── src/
 │       ├── main.jsx           # React entry (providers)
-│       ├── App.jsx            # Layout
-│       ├── index.css          # Global styles
-│       ├── App.css            # App layout styles
+│       ├── index.css          # Global styles (Tailwind v4)
 │       ├── config/
-│       │   └── wagmi.js       # Wagmi + RainbowKit config
+│       │   └── wagmi.js       # Wagmi + RainbowKit config (Sepolia)
 │       ├── services/
 │       │   └── api.js         # Axios API client
 │       └── components/
-│           ├── Header.jsx     # Nav + ConnectButton
-│           ├── Header.css
-│           ├── ChatPanel.jsx  # Main interaction (x402 flow)
-│           ├── ChatPanel.css
-│           ├── Footer.jsx
-│           └── Footer.css
+│           ├── ChatPage.jsx   # Core UI (Sidebar + Chat + Glassmorphism)
+│           └── Orb.jsx        # WebGL Background effect
 │
 ├── .gitignore
 └── README.md
@@ -161,7 +166,7 @@ x402aiagent/
 - **Node.js** v18+ and npm
 - **MongoDB** running locally (or MongoDB Atlas)
 - **MetaMask** browser extension
-- **Sepolia ETH** (get from [Sepolia Faucet](https://sepoliafaucet.com))
+- **Sepolia ETH** (get from [Alchemy Faucet](https://sepoliafaucet.com))
 
 ### 1. Clone & Install
 
@@ -194,7 +199,7 @@ ETHERSCAN_API_KEY=your_key
 GROQ_API_KEY=your_key
 
 # MongoDB (local or Atlas URI)
-MONGODB_URI=mongodb://localhost:27017/x402agent
+MONGODB_URI=mongodb://localhost:27017/chainmind
 
 # Sepolia RPC (default works, or use Alchemy/Infura)
 SEPOLIA_RPC_URL=https://rpc.sepolia.org
@@ -207,81 +212,46 @@ SEPOLIA_RPC_URL=https://rpc.sepolia.org
 mongod
 ```
 
-### 4. Start Backend
+### 4. Start Infrastructure
+
+Run the following in separate terminals:
 
 ```bash
+# Terminal 1: Backend
 cd backend
 npm run dev
-```
 
-You should see:
-```
-✅  MongoDB connected: localhost
-╔══════════════════════════════════════════════════╗
-║           x402 AI Agent — Backend                ║
-║  🚀  Server: http://localhost:5000               ║
-║  🔗  Network: Sepolia Testnet                    ║
-╚══════════════════════════════════════════════════╝
-```
-
-### 5. Start Frontend
-
-```bash
+# Terminal 2: Frontend
 cd frontend
 npm run dev
 ```
 
-Opens at `http://localhost:5173`
+### 5. Finalize Setup
 
-### 6. Test the Flow
-
-1. Open `http://localhost:5173` in your browser
-2. Click **Connect Wallet** → connect MetaMask on Sepolia
-3. Click **⚡ Analyze Gas**
-4. You'll see the **402 Payment Required** card
-5. Click **💰 Pay 0.001 ETH**
-6. Confirm in MetaMask
-7. Wait for verification
-8. See the AI gas optimization analysis! 🎉
+1. Open `http://localhost:5173`
+2. Connect wallet on **Sepolia Testnet**.
+3. Use the **Market Brief** in the sidebar to monitor prices.
+4. Issue a query: *"Analyze ETH vs Solana efficiency"*
+5. Experience the autonomous analyst in action!
 
 ---
 
 ## 🔐 Security Notes
 
-| Concern | Implementation |
-|---------|---------------|
-| Payment fraud | Backend verifies every tx on-chain via ethers.js |
-| Duplicate tx | Transaction hashes are stored and checked for uniqueness |
-| Sender spoofing | Backend verifies tx.from matches the claimed wallet |
-| API key exposure | All keys are server-side only, never sent to frontend |
-| Rate limiting | General (100/15min) + payment-specific (10/5min) limits |
-| CORS | Locked to frontend origin only |
+- **On-chain Verification**: Backend validates every transaction hash directly against the Sepolia network using `ethers.js`.
+- **Duplicate Protection**: Unique transaction hashes prevent re-use of payments.
+- **Wallet Matching**: Verifies `tx.from` matches the authenticated wallet address.
+- **Zero-Exposure**: API keys and secrets are strictly server-side.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React (Vite), Wagmi, Viem, RainbowKit |
-| Wallet | MetaMask, Sepolia Testnet |
-| Backend | Node.js, Express |
-| Database | MongoDB + Mongoose |
-| Blockchain | Ethers.js (on-chain verification) |
-| APIs | CoinMarketCap, Etherscan Gas Oracle |
-| LLM | Groq API (gpt-oss-120b) |
-| Styling | Vanilla CSS (glassmorphism + dark theme) |
-
----
-
-## 📌 API Endpoints
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/api/health` | — | Health check |
-| `GET` | `/api/payment-status?walletAddress=0x...` | — | Check if wallet has paid |
-| `POST` | `/api/verify-payment` | — | Verify tx on-chain |
-| `POST` | `/api/agent/query` | x402 | Ask the AI agent (payment-gated) |
+- **Frontend**: React, Tailwind CSS v4, OGL (WebGL)
+- **Web3**: Wagmi, Viem, RainbowKit (Sepolia Only)
+- **Backend**: Node.js, Express, Mongoose
+- **Intelligence**: Groq API (High-performance LLM)
+- **Design**: Frosted Glass UI, Dynamic Sidebar, Interactive WebGL Background
 
 ---
 
