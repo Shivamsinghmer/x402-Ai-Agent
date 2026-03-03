@@ -90,3 +90,52 @@ Give me a clean, simple analysis. Use bullet points, NOT tables. Keep it short a
         throw new Error(`LLM analysis failed: ${error.message}`);
     }
 };
+
+/**
+ * Extract City Name from a user query (for Hotel Booking)
+ * 
+ * @param {string} query – The user's original question
+ * @returns {string}      – The extracted city name (e.g. "Paris", "New York")
+ */
+export const extractCityName = async (query) => {
+    try {
+        console.log(`🧠 [LLM] Extracting city from query: "${query}"`);
+
+        const chatCompletion = await groq.chat.completions.create({
+            messages: [
+                {
+                    role: "system",
+                    content: "You are a travel assistant that extracts city names from user queries. Respond with ONLY the city name found in the query. If no city is found, respond with 'null'. Do not include any other text.",
+                },
+                {
+                    role: "user",
+                    content: `Extract the city from this request: "${query}"`,
+                },
+            ],
+            model: "openai/gpt-oss-120b",
+            temperature: 0.1,
+            max_tokens: 3000
+        });
+
+        let result = chatCompletion.choices[0]?.message?.content?.trim();
+        console.log(`🤖 [LLM] Raw extraction result: "${result}"`);
+
+        if (!result) return null;
+
+        // Strip common "fluff" words if the LLM failed to follow the 'ONLY' rule
+        result = result.replace(/^(The city is|City:|Destination:|extracted city:|is)/i, "").trim();
+        result = result.replace(/['".!]/g, '');
+
+        if (result.toLowerCase() === "null" || result === "") {
+            console.warn("⚠️ [LLM] No city detected in query.");
+            return null;
+        }
+
+        console.log(`✅ [LLM] Final extracted city: "${result}"`);
+        return result;
+    } catch (error) {
+        console.error("❌ [LLM] Extraction Error:", error.message);
+        return null; // Fallback to null
+    }
+};
+

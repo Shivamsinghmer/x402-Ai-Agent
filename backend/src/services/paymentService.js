@@ -20,35 +20,41 @@ import config from "../config/index.js";
 const provider = new ethers.JsonRpcProvider(config.sepoliaRpcUrl);
 
 /**
- * Check whether a wallet has an UNUSED payment credit.
- * In pay-per-query model, each payment is consumed after one query.
+ * Check whether a wallet has an UNUSED payment credit that covers the required amount.
  * @param {string} walletAddress – The user's Ethereum address.
- * @returns {boolean} – true if the wallet has an unused payment.
+ * @param {string} minAmountEth – The minimum required payment in ETH.
+ * @returns {boolean} – true if the wallet has an unused payment of sufficient value.
  */
-export const hasUnusedPayment = async (walletAddress) => {
+export const hasUnusedPayment = async (walletAddress, minAmountEth = "0") => {
     const payment = await Payment.findOne({
         walletAddress: walletAddress.toLowerCase(),
         verified: true,
-        used: false,  // Only count unused payments
+        used: false,
+        $expr: {
+            $gte: [{ $toDouble: "$amountEth" }, parseFloat(minAmountEth)]
+        }
     });
     return !!payment;
 };
 
 /**
  * Mark the oldest unused payment for a wallet as consumed.
- * Called after a query is successfully processed.
  * @param {string} walletAddress – The user's Ethereum address.
+ * @param {string} minAmountEth – Match a payment of at least this value.
  * @returns {boolean} – true if a payment was marked as used.
  */
-export const markPaymentUsed = async (walletAddress) => {
+export const markPaymentUsed = async (walletAddress, minAmountEth = "0") => {
     const payment = await Payment.findOneAndUpdate(
         {
             walletAddress: walletAddress.toLowerCase(),
             verified: true,
             used: false,
+            $expr: {
+                $gte: [{ $toDouble: "$amountEth" }, parseFloat(minAmountEth)]
+            }
         },
         { used: true },
-        { sort: { createdAt: 1 } } // Use oldest unused payment first
+        { sort: { createdAt: 1 } }
     );
     return !!payment;
 };

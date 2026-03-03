@@ -23,27 +23,64 @@ const api = axios.create({
 });
 
 /**
- * Query the AI agent. Attaches the wallet address header.
+ * Query a specific AI agent. Attaches the wallet address header.
+ * @param {string} agentId – The slug of the agent to query (e.g. "chainmind", "hotel-booking")
  * @param {string} query – The user's question
  * @param {string} walletAddress – Connected wallet address  
+ * @param {string} chatId - Optional chat ID for persistence
  * @returns {Promise<object>} – The API response (may be 402)
  */
-export const queryAgent = async (query, walletAddress) => {
+export const queryAgent = async (agentId, query, walletAddress, chatId = null) => {
     try {
+        // Handle legacy calls or default to chainmind if agentId looks like a query
+        const effectiveAgentId = (agentId && !query && !walletAddress) ? "chainmind" : agentId;
+        const effectiveQuery = (agentId && !query && !walletAddress) ? agentId : query;
+        const effectiveWallet = (agentId && !query && !walletAddress) ? query : walletAddress;
+
         const response = await api.post(
-            "/agent/query",
-            { query },
+            `/agent/${effectiveAgentId}/query`,
+            { query: effectiveQuery, chatId },
             {
-                headers: { "x-wallet-address": walletAddress },
+                headers: { "x-wallet-address": effectiveWallet },
             }
         );
         return response.data;
     } catch (error) {
-        // Rethrow so the component can handle 402 specifically
         if (error.response) {
             throw error;
         }
         throw new Error("Network error — is the backend running?");
+    }
+};
+
+/**
+ * Fetch all available agents from the marketplace registry.
+ * @returns {Promise<Array>}
+ */
+export const getAgentsRegistry = async () => {
+    try {
+        const response = await api.get("/agents/registry");
+        return response.data.data;
+    } catch (error) {
+        console.error("Registry fetch error:", error);
+        return [];
+    }
+};
+
+/**
+ * Get History for a specific wallet, optionally filtered by agent.
+ * @param {string} walletAddress 
+ * @param {string} agentId 
+ * @returns {Promise<object>}
+ */
+export const getChatHistory = async (walletAddress, agentId = null) => {
+    try {
+        const params = agentId ? { agentId } : {};
+        const response = await api.get(`/agent/history/${walletAddress}`, { params });
+        return response.data;
+    } catch (error) {
+        console.error("History error:", error);
+        throw error;
     }
 };
 
@@ -77,11 +114,17 @@ export const checkPaymentStatus = async (walletAddress) => {
  * Trigger the backend to auto-pay from the agent's own wallet.
  * No MetaMask interaction needed — the agent signs the tx server-side.
  * @param {string} walletAddress – The user's wallet address to credit
+ * @param {string} agentId – Optional agent ID to get price
+ * @param {string} amountEth – Optional custom amount (e.g. for hotel booking)
  * @returns {Promise<object>} – { status, message, payment }
  */
-export const agentAutoPay = async (walletAddress) => {
+export const agentAutoPay = async (walletAddress, agentId = null, amountEth = null) => {
     try {
-        const response = await api.post("/agent-auto-pay", { walletAddress });
+        const response = await api.post("/agent-auto-pay", {
+            walletAddress,
+            agentId,
+            amountEth
+        });
         return response.data;
     } catch (error) {
         if (error.response) {
@@ -99,5 +142,8 @@ export const getAgentWalletInfo = async () => {
     const response = await api.get("/agent-wallet-info");
     return response.data.wallet;
 };
+
+// Removed duplicative helper to keep clean
+
 
 export default api;

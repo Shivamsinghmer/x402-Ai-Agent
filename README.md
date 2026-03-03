@@ -1,12 +1,6 @@
-# ChainMind AI — Intelligence Oracle
+# Open x402 — The Decentralized AI Agent Marketplace
 
-> A premium, full-stack AI Analyst implementing the **x402 payment-gated protocol** on Sepolia testnet. Users access real-time cross-chain intelligence, market analytics, and gas optimization (Ethereum & Solana) via a professional high-fidelity interface.
-
----
-
-## 📺 Demo
-
-[![Demo Video](https://img.youtube.com/vi/KtPnthA_sxw/0.jpg)](https://youtu.be/KtPnthA_sxw)
+> Access specialized intelligence and on-chain tools secured by the **x402 payment-gated protocol** on Sepolia testnet. A premium, full-stack marketplace for autonomous AI agents.
 
 ---
 
@@ -33,8 +27,8 @@
 │                                     └──────────────────┘     │
 │  ┌──────────┐  ┌──────────────┐  ┌──────────────────┐       │
 │  │ MongoDB  │  │ Ethers.js    │  │  External APIs   │       │
-│  │(Payments)│  │(On-chain     │  │  CoinMarketCap   │       │
-│  │          │  │ verification)│  │  Etherscan Gas   │       │
+│  │(Payments)│  │(On-chain     │  │  Amadeus Travel  │       │
+│  │          │  │ verification)│  │  CoinMarketCap   │       │
 │  │          │  │              │  │  Groq LLM        │       │
 │  └──────────┘  └──────────────┘  └──────────────────┘       │
 └─────────────────────────────────────────────────────────────┘
@@ -42,219 +36,84 @@
 
 ---
 
-## 🔄 x402 Protocol Flow
+## 🔄 x402 Protocol Flow (The Payment Layer)
 
-```
-User visits site
-    │
-    ▼
-Connect MetaMask (Sepolia)
-    │
-    ▼
-Analyze Market Intelligence
-    │
-    ▼
-Frontend sends POST /api/agent/query
-  with header: x-wallet-address: 0x...
-    │
-    ▼
-Backend checks: Has this wallet paid?
-    │
-    ├── YES → Fetch Data → LLM → Return Intelligence
-    │
-    └── NO → Return HTTP 402 Payment Required
-              {
-                status: "payment_required",
-                amount: "0.001 ETH",
-                payment_address: "0x...",
-                network: "Sepolia Testnet"
-              }
-              │
-              ▼
-        Frontend triggers confirmation
-              │
-              ▼
-        User clicks "Confirm & Pay"
-              │
-              ▼
-        MetaMask sends Sepolia ETH
-              │
-              ▼
-        Wait for tx confirmation
-              │
-              ▼
-        POST /api/verify-payment
-          { transactionHash, walletAddress }
-              │
-              ▼
-        Backend verifies on-chain:
-          ✓ tx exists on Sepolia
-          ✓ tx.to == agent wallet (ChainMind Oracle)
-          ✓ tx.value >= 0.001 ETH
-          ✓ tx matches sender & is unique
-              │
-              ▼
-        Store payment in MongoDB
-              │
-              ▼
-        Re-run original request → AI Response 🎉
-```
+1. **User Request**: User sends a query to a specific AI Agent.
+2. **Payment Check**: Backend checks if the wallet has a valid, unused payment for that agent.
+3. **402 Required**: If not paid, server returns a `402 Payment Required` with the recipient address.
+4. **Autonomous Pay**: User confirms, and the frontend signs a transaction to the Agent's vault.
+5. **Verification**: Backend verifies the transaction on-chain (Sepolia) and releases the AI response.
 
 ---
 
-## ✨ Features & UI
+## ✨ Marketplace Agents
 
-| Feature | Description |
-|---------|-------------|
-| **Command Center** | Persistent left sidebar for quick-glance market data & network vitals. |
-| **Market Brief** | Live price feeds for ETH and SOL integrated directly into the dashboard. |
-| **Network Vitals** | Real-time Gas tracker (Gwei) and network latency monitoring. |
-| **Glassmorphism** | High-fidelity frosted glass message bubbles and UI elements for a premium feel. |
-| **Dynamic Orb** | Mathematical WebGL background that responds to user presence and interactions. |
-| **Oracle v1.0** | Professional-grade analytical tone focusing on data-driven cross-chain insights. |
+| Agent | Capability | Price |
+|-------|------------|-------|
+| **ChainMind** | Real-time cross-chain intelligence & market analysis. | 0.001 ETH |
+| **HotelBooking** | Search & book hotels globally via Amadeus API. | 0.002 ETH |
 
 ---
 
 ## 📂 Folder Structure
 
 ```
-chainmind-ai/
-├── backend/
-│   ├── .env.example          # Environment variables template
-│   ├── package.json
-│   └── src/
-│       ├── server.js          # Express entry point
-│       ├── config/
-│       │   ├── index.js       # Centralized config
-│       │   └── db.js          # MongoDB connection
-│       ├── middleware/
-│       │   └── paymentRequired.js  # x402 middleware
-│       ├── models/
-│       │   └── Payment.js     # Mongoose payment model
-│       ├── routes/
-│       │   ├── paymentRoutes.js    # /verify-payment, /payment-status
-│       │   └── agentRoutes.js      # /agent/query (protected)
-│       └── services/
-│           ├── paymentService.js   # On-chain TX verification
-│           ├── apiService.js       # CoinMarketCap + Etherscan
-│           └── llmService.js       # Groq LLM integration
-│
-├── frontend/
-│   ├── index.html
-│   ├── package.json
-│   └── src/
-│       ├── main.jsx           # React entry (providers)
-│       ├── index.css          # Global styles (Tailwind v4)
-│       ├── config/
-│       │   └── wagmi.js       # Wagmi + RainbowKit config (Sepolia)
-│       ├── services/
-│       │   └── api.js         # Axios API client
-│       └── components/
-│           ├── ChatPage.jsx   # Core UI (Sidebar + Chat + Glassmorphism)
-│           └── Orb.jsx        # WebGL Background effect
-│
-├── .gitignore
-└── README.md
+open-x402/
+├── backend/          # Express.js Server
+│   ├── src/agents/   # Modular Agent Handlers
+│   ├── src/services/ # Amadeus, Payment, LLM services
+│   └── src/routes/   # Auth & Payment API
+└── frontend/         # React + Tailwind Dashboard
+    ├── src/hooks/    # useChat (Autonomous Payment Logic)
+    └── src/marketplace/ # Agent Cards & Booking UI
 ```
 
 ---
 
-## 🚀 Step-by-Step Setup
+## 🚀 Setup & Launch
 
 ### Prerequisites
+- Node.js v18+
+- MongoDB
+- Groq API Key
+- Amadeus API Credentials (for HotelBooking)
 
-- **Node.js** v18+ and npm
-- **MongoDB** running locally (or MongoDB Atlas)
-- **MetaMask** browser extension
-- **Sepolia ETH** (get from [Alchemy Faucet](https://sepoliafaucet.com))
-
-### 1. Clone & Install
-
+### 1. Installation
 ```bash
-# Backend
-cd backend
-cp .env.example .env
-npm install
-
-# Frontend
-cd ../frontend
-npm install
+# Clone and install dependencies
+git clone https://github.com/your-repo/open-x402
+cd backend && npm install
+cd ../frontend && npm install
 ```
 
-### 2. Configure Environment Variables
-
-Edit `backend/.env`:
-
+### 2. Environment Variables
+Create `.env` in the `backend` folder:
 ```env
-# Your wallet that will RECEIVE payments
-AGENT_WALLET_ADDRESS=0xYourWalletAddressHere
-
-# Get at https://coinmarketcap.com/api/
-COINMARKETCAP_API_KEY=your_key
-
-# Get at https://etherscan.io/apis
-ETHERSCAN_API_KEY=your_key
-
-# Get at https://console.groq.com/
-GROQ_API_KEY=your_key
-
-# MongoDB (local or Atlas URI)
-MONGODB_URI=mongodb://localhost:27017/chainmind
-
-# Sepolia RPC (default works, or use Alchemy/Infura)
-SEPOLIA_RPC_URL=https://rpc.sepolia.org
+AGENT_WALLET_ADDRESS=0x...
+GROQ_API_KEY=...
+AMADEUS_API_KEY=...
+AMADEUS_API_SECRET=...
+MONGODB_URI=...
+SEPOLIA_RPC_URL=...
 ```
 
-### 3. Start MongoDB
-
+### 3. Run Locally
 ```bash
-# If using local MongoDB:
-mongod
+# Terminal 1
+cd backend && npm run dev
+
+# Terminal 2
+cd frontend && npm run dev
 ```
-
-### 4. Start Infrastructure
-
-Run the following in separate terminals:
-
-```bash
-# Terminal 1: Backend
-cd backend
-npm run dev
-
-# Terminal 2: Frontend
-cd frontend
-npm run dev
-```
-
-### 5. Finalize Setup
-
-1. Open `http://localhost:5173`
-2. Connect wallet on **Sepolia Testnet**.
-3. Use the **Market Brief** in the sidebar to monitor prices.
-4. Issue a query: *"Analyze ETH vs Solana efficiency"*
-5. Experience the autonomous analyst in action!
 
 ---
 
-## 🔐 Security Notes
-
-- **On-chain Verification**: Backend validates every transaction hash directly against the Sepolia network using `ethers.js`.
-- **Duplicate Protection**: Unique transaction hashes prevent re-use of payments.
-- **Wallet Matching**: Verifies `tx.from` matches the authenticated wallet address.
-- **Zero-Exposure**: API keys and secrets are strictly server-side.
-
----
-
-## 🛠️ Tech Stack
-
-- **Frontend**: React, Tailwind CSS v4, OGL (WebGL)
-- **Web3**: Wagmi, Viem, RainbowKit (Sepolia Only)
-- **Backend**: Node.js, Express, Mongoose
-- **Intelligence**: Groq API (High-performance LLM)
-- **Design**: Frosted Glass UI, Dynamic Sidebar, Interactive WebGL Background
+## 🔐 Security & Protocol
+- **On-chain Validation**: Real-time verification of Tx hashes via `ethers.js`.
+- **Private Key Isolation**: Agent keys are never exposed to the frontend.
+- **Glassmorphism Design**: High-fidelity interface for a premium Web3 experience.
 
 ---
 
 ## 📜 License
-
 MIT

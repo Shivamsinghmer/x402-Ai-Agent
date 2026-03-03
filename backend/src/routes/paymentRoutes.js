@@ -1,8 +1,9 @@
-
 import { Router } from "express";
 import { verifyTransaction, hasUnusedPayment } from "../services/paymentService.js";
 import { executeAutoPay, getAgentWalletInfo } from "../services/autoPayService.js";
 import Payment from "../models/Payment.js";
+import { agentRegistry } from "../agents/agentRegistry.js";
+import config from "../config/index.js";
 
 const router = Router();
 
@@ -30,9 +31,7 @@ router.post("/verify-payment", async (req, res) => {
             });
         }
 
-        console.log(
-            `🔍 Verifying tx: ${transactionHash} from ${walletAddress}`
-        );
+        console.log(`🔍 Verifying tx: ${transactionHash} from ${walletAddress}`);
 
         const result = await verifyTransaction(transactionHash, walletAddress);
 
@@ -64,25 +63,31 @@ router.post("/verify-payment", async (req, res) => {
 });
 
 // ── Agent Auto-Pay ──────────────────────────────────────────
-// The agent pays from its own wallet — no MetaMask needed.
-// 1. Sends ETH from AGENT_PRIVATE_KEY wallet
-// 2. Automatically verifies the on-chain tx
-// 3. Returns ready-to-use payment credit
 router.post("/agent-auto-pay", async (req, res) => {
     try {
-        const { walletAddress } = req.body;
+        const { walletAddress, agentId } = req.body;
 
         if (!walletAddress) {
             return res.status(400).json({
                 status: "error",
-                message: "walletAddress is required (the user's address to credit).",
+                message: "walletAddress is required.",
             });
         }
 
-        console.log(`🤖 Agent auto-pay initiated for user: ${walletAddress}`);
+        // ── Determine Amount ────────────────────────────────────
+        let amountEth = req.body.amountEth || config.requiredPaymentEth;
+
+        if (!req.body.amountEth && agentId) {
+            const agent = agentRegistry.find(a => a.id === agentId);
+            if (agent) {
+                amountEth = agent.price;
+            }
+        }
+
+        console.log(`🤖 Agent auto-pay initiated for user: ${walletAddress} (Amount: ${amountEth} ETH, Agent: ${agentId || 'default'})`);
 
         // ── Step 1: Execute the on-chain payment ────────────────
-        const payResult = await executeAutoPay();
+        const payResult = await executeAutoPay(undefined, amountEth);
 
         if (!payResult.success) {
             return res.status(500).json({
@@ -92,8 +97,6 @@ router.post("/agent-auto-pay", async (req, res) => {
         }
 
         // ── Step 2: Create payment credit for the USER ──────────
-        // The agent paid on-chain, so we directly credit the user.
-        // (We skip verifyTransaction because the agent is trusted.)
         const payment = await Payment.create({
             walletAddress: walletAddress.toLowerCase(),
             transactionHash: payResult.transactionHash,
@@ -136,7 +139,6 @@ router.post("/agent-auto-pay", async (req, res) => {
 });
 
 // ── Agent Wallet Info ────────────────────────────────────────
-// Returns agent wallet balance so the UI can show remaining funds
 router.get("/agent-wallet-info", async (req, res) => {
     try {
         const info = await getAgentWalletInfo();
