@@ -5,6 +5,7 @@ import ChatMessage from "./Chat/ChatMessage";
 import ChatInput from "./Chat/ChatInput";
 import ChatStatus from "./Chat/ChatStatus";
 import BookingDialog from "./Chat/BookingDialog";
+import FlightBookingDialog from "./Chat/FlightBookingDialog";
 
 /**
  * Main Agent Chat view component.
@@ -28,7 +29,12 @@ const AgentChat = ({ chat, backToMarketplace }) => {
         setIsBookingDialogOpen,
         pendingHotel,
         handleBookingConfirm,
-        handleBookingClose
+        handleBookingClose,
+        isFlightDialogOpen,
+        setIsFlightDialogOpen,
+        pendingFlight,
+        handleFlightBookingConfirm,
+        handleFlightBookingClose
     } = chat;
 
     if (!activeAgent) return null;
@@ -117,8 +123,16 @@ const AgentChat = ({ chat, backToMarketplace }) => {
                 onClose={handleBookingClose}
                 onConfirm={handleBookingConfirm}
             />
+
+            <FlightBookingDialog
+                isOpen={isFlightDialogOpen}
+                flight={pendingFlight}
+                onClose={handleFlightBookingClose}
+                onConfirm={handleFlightBookingConfirm}
+            />
         </div>
     );
 };
+
 
 export default AgentChat;

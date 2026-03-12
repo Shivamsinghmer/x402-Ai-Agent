@@ -12,9 +12,10 @@ export const hotelBookingHandler = async ({ query }) => {
 
     try {
         // 1. Extract city from query
-        const cityName = await extractCityName(query);
+        const cityData = await extractCityName(query);
+        const { name:cityName, iataCode } = cityData;
 
-        if (!cityName) {
+        if (!cityName || cityName === "null") {
             return {
                 result: "I couldn't quite catch which city you're interested in. Could you please specify the city? (e.g., 'Find hotels in Tokyo')",
                 metadata: {
@@ -24,10 +25,11 @@ export const hotelBookingHandler = async ({ query }) => {
             };
         }
 
-        console.log(`📍 [HotelBooking] Attempting to find hotels in: "${cityName}"`);
+        console.log(`📍 [HotelBooking] Attempting to find hotels in: "${cityName}" (${iataCode || 'no fallback'})`);
 
         // 2. Fetch real data from Amadeus
-        const hotels = await searchHotelsByCity(cityName);
+        const hotels = await searchHotelsByCity(cityName, iataCode);
+
 
         console.log(`🏨 [HotelBooking] Found ${hotels.length} hotels in ${cityName}`);
 

@@ -92,20 +92,25 @@ Give me a clean, simple analysis. Use bullet points, NOT tables. Keep it short a
 };
 
 /**
- * Extract City Name from a user query (for Hotel Booking)
+ * Extract City Name and IATA Code from a user query (for Hotel Booking)
  * 
  * @param {string} query – The user's original question
- * @returns {string}      – The extracted city name (e.g. "Paris", "New York")
+ * @returns {object}     – { name: string, iataCode: string }
  */
 export const extractCityName = async (query) => {
     try {
-        console.log(`🧠 [LLM] Extracting city from query: "${query}"`);
+        console.log(`🧠 [LLM] Extracting city details from query: "${query}"`);
 
         const chatCompletion = await groq.chat.completions.create({
             messages: [
                 {
                     role: "system",
-                    content: "You are a travel assistant that extracts city names from user queries. Respond with ONLY the city name found in the query. If no city is found, respond with 'null'. Do not include any other text.",
+                    content: `You are a travel assistant that extracts city names from user queries. 
+                    Structure your response as a JSON object with:
+                    - "name": The full name of the city.
+                    - "iataCode": The 3-letter IATA code for that city (e.g., "NYC", "LON", "PAR").
+                    If no city is found, use "null" for both fields.
+                    Respond ONLY with the JSON object.`,
                 },
                 {
                     role: "user",
@@ -114,28 +119,75 @@ export const extractCityName = async (query) => {
             ],
             model: "openai/gpt-oss-120b",
             temperature: 0.1,
-            max_tokens: 3000
+            max_tokens: 500
         });
 
-        let result = chatCompletion.choices[0]?.message?.content?.trim();
-        console.log(`🤖 [LLM] Raw extraction result: "${result}"`);
+        const rawResult = chatCompletion.choices[0]?.message?.content?.trim();
+        console.log(`🤖 [LLM] Raw city extraction result: "${rawResult}"`);
 
-        if (!result) return null;
-
-        // Strip common "fluff" words if the LLM failed to follow the 'ONLY' rule
-        result = result.replace(/^(The city is|City:|Destination:|extracted city:|is)/i, "").trim();
-        result = result.replace(/['".!]/g, '');
-
-        if (result.toLowerCase() === "null" || result === "") {
-            console.warn("⚠️ [LLM] No city detected in query.");
-            return null;
+        try {
+            const result = JSON.parse(rawResult.match(/\{.*\}/s)[0]);
+            return result;
+        } catch (e) {
+            console.error("Failed to parse JSON from LLM response:", e);
+            return { name: null, iataCode: null };
         }
-
-        console.log(`✅ [LLM] Final extracted city: "${result}"`);
-        return result;
     } catch (error) {
-        console.error("❌ [LLM] Extraction Error:", error.message);
-        return null; // Fallback to null
+        console.error("❌ [LLM] City Extraction Error:", error.message);
+        return { name: null, iataCode: null };
     }
 };
+
+
+/**
+ * Extract Flight Parameters (Origin, Destination, Date) from a user query
+ * 
+ * @param {string} query – The user's original question
+ * @returns {object}     – { origin: string, destination: string, date: string }
+ */
+export const extractFlightParameters = async (query) => {
+    try {
+        console.log(`🧠 [LLM] Extracting flight parameters from query: "${query}"`);
+
+        const chatCompletion = await groq.chat.completions.create({
+            messages: [
+                {
+                    role: "system",
+                    content: `You are a travel assistant that extracts flight details from user queries. 
+                     Structure your response as a JSON object with strictly these keys: "origin", "destination", "date", "originCode", "destCode".
+                    - "origin": The city or airport the user is flying from.
+                    - "destination": The city or airport the user is flying to.
+                    - "date": The departure date in YYYY-MM-DD format. If no year is provided, assume 2025 or 2026 based on the current date.
+                    - "originCode": The 3-letter IATA code for the origin city/airport (e.g., NYC, DEL, DXB).
+                    - "destCode": The 3-letter IATA code for the destination city/airport (e.g., LON, DXB, LHR).
+                    If any field is missing, use "null" as the value. 
+                    Respond ONLY with the JSON object.`,
+                },
+                {
+                    role: "user",
+                    content: `Extract flight parameters from this request: "${query}". Current Date: ${new Date().toISOString().split('T')[0]}`,
+                },
+            ],
+            model: "openai/gpt-oss-120b",
+            temperature: 0.1,
+            max_tokens: 500
+        });
+
+        const rawResult = chatCompletion.choices[0]?.message?.content?.trim();
+        console.log(`🤖 [LLM] Raw flight extraction result: "${rawResult}"`);
+
+        try {
+            const result = JSON.parse(rawResult.match(/\{.*\}/s)[0]);
+            return result;
+        } catch (e) {
+            console.error("Failed to parse JSON from LLM response:", e);
+            return { origin: null, destination: null, date: null, originCode: null, destCode: null };
+        }
+    } catch (error) {
+        console.error("❌ [LLM] Flight Extraction Error:", error.message);
+        return { origin: null, destination: null, date: null, originCode: null, destCode: null };
+    }
+
+};
+
 

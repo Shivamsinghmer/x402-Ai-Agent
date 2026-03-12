@@ -1,5 +1,6 @@
 import { chainmindHandler } from "./chainmind.handler.js";
 import { hotelBookingHandler } from "./hotelBooking.handler.js";
+import { flightBookingHandler } from "./flightBooking.handler.js";
 
 /**
  * Agent Registry
@@ -35,7 +36,23 @@ export const agentRegistry = [
             "Luxurious stays in Tokyo",
             "Budget friendly hotels near Central Park"
         ]
+    },
+    {
+        id: "flight-booking",
+        name: "FlightBooking Agent",
+        description: "Search and compare flights globally. AI-powered deals and multi-airline options.",
+        category: "travel",
+        price: "0.003",
+        icon: "✈️",
+        botIcon: "https://api.dicebear.com/9.x/bottts/svg?seed=Flight",
+        handler: flightBookingHandler,
+        examplePrompts: [
+            "Find flights from New York to London for next Friday",
+            "Cheapest flights from Delhi to Dubai on Oct 10",
+            "Book a flight from Paris to Tokyo in December"
+        ]
     }
+
 ];
 
 /**

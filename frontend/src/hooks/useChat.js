@@ -31,6 +31,8 @@ export const useChat = (agentId = null) => {
     // Booking Dialog State
     const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
     const [pendingHotel, setPendingHotel] = useState(null);
+    const [isFlightDialogOpen, setIsFlightDialogOpen] = useState(false);
+    const [pendingFlight, setPendingFlight] = useState(null);
 
     // Initial Load: Agents Registry
     useEffect(() => {
@@ -218,20 +220,70 @@ export const useChat = (agentId = null) => {
         }
     };
 
+    const handleFlightBookingConfirm = async (details) => {
+        setIsFlightDialogOpen(false);
+        const flight = pendingFlight;
+        if (!flight || !address) return;
+
+        setStatus(STATUS.AUTO_PAYING);
+        addMessage("system", `✈️ Flight booking confirmed: **${details.passengers} passenger(s)**, **${details.cabinClass}** class.`);
+        addMessage("system", `🤖 Agent is processing the calculated payment of **${details.totalEth} ETH**...`);
+
+        try {
+            const result = await agentAutoPay(address, activeAgentId, details.totalEth);
+
+            if (result.status === "auto_pay_success") {
+                addMessage(
+                    "assistant",
+                    `🎉 **Flight Booked Successfully!**\n\nI have successfully paid **${details.totalEth} ETH** for your flight with **${flight.airlineName}**.\n\n**Trip Summary:**\n- Route: ${flight.origin} ➔ ${flight.destination}\n- Date: ${flight.date}\n- Class: ${details.cabinClass}\n- Passengers: ${details.passengers}\n\nTransaction Receipt: [${result.payment.transactionHash.substring(0, 10)}...](https://sepolia.etherscan.io/tx/${result.payment.transactionHash})`,
+                    {
+                        type: "flight_confirmation",
+                        flight,
+                        bookingDetails: details,
+                        transactionHash: result.payment.transactionHash
+                    }
+                );
+                setStatus(STATUS.SUCCESS);
+            } else {
+                throw new Error(result.message || "Flight booking failed.");
+            }
+        } catch (err) {
+            console.error("Flight booking error:", err);
+            const msg = err.response?.data?.message || err.message || "Flight booking failed.";
+            addMessage("system", `⚠️ Flight Booking Failed: ${msg}`);
+            setError(msg);
+            setStatus(STATUS.ERROR);
+        }
+    };
+
     const handleBookingClose = () => {
         setIsBookingDialogOpen(false);
         setPendingHotel(null);
     };
 
-    // Listen for hotel booking events from results
+    const handleFlightBookingClose = () => {
+        setIsFlightDialogOpen(false);
+        setPendingFlight(null);
+    };
+
+    // Listen for booking events from results
     useEffect(() => {
-        const handleBooking = (e) => {
+        const handleHotelBooking = (e) => {
             const hotel = e.detail;
             setPendingHotel(hotel);
             setIsBookingDialogOpen(true);
         };
-        window.addEventListener('initiate-hotel-booking', handleBooking);
-        return () => window.removeEventListener('initiate-hotel-booking', handleBooking);
+        const handleFlightBooking = (e) => {
+            const flight = e.detail;
+            setPendingFlight(flight);
+            setIsFlightDialogOpen(true);
+        };
+        window.addEventListener('initiate-hotel-booking', handleHotelBooking);
+        window.addEventListener('initiate-flight-booking', handleFlightBooking);
+        return () => {
+            window.removeEventListener('initiate-hotel-booking', handleHotelBooking);
+            window.removeEventListener('initiate-flight-booking', handleFlightBooking);
+        };
     }, [address, activeAgentId, agents]);
 
     return {
@@ -241,6 +293,9 @@ export const useChat = (agentId = null) => {
         handleSubmit, handleKeyDown, dismissError, runQuery,
         confirmAutoPay, selectChat, startNewChat,
         isBookingDialogOpen, setIsBookingDialogOpen, pendingHotel,
-        handleBookingConfirm, handleBookingClose
+        handleBookingConfirm, handleBookingClose,
+        isFlightDialogOpen, setIsFlightDialogOpen, pendingFlight,
+        handleFlightBookingConfirm, handleFlightBookingClose
     };
+
 };

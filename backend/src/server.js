@@ -59,14 +59,15 @@ app.get("/api/health", (req, res) => {
     });
 });
 
-connectDB();
+const startServer = async () => {
+    try {
+        await connectDB();
 
-
-if (process.env.NODE_ENV !== "production") {
-    app.listen(config.port, () => {
-        console.log(`
+        if (process.env.NODE_ENV !== "production") {
+            app.listen(config.port, () => {
+                console.log(`
 ╔══════════════════════════════════════════════════╗
-║           ChainMind AI — Backend                 ║
+║           Open x402 AI — Backend                 ║
 ╠══════════════════════════════════════════════════╣
 ║  🚀  Server:     http://localhost:${config.port}          ║
 ║  🔗  Network:    Sepolia Testnet                 ║
@@ -74,9 +75,16 @@ if (process.env.NODE_ENV !== "production") {
 ║      ${config.agentWalletAddress}  ║
 ║  💵  Required:   ${config.requiredPaymentEth} ETH                      ║
 ╚══════════════════════════════════════════════════╝
-        `);
-    });
-}
+                `);
+            });
+        }
+    } catch (error) {
+        console.error("❌ Failed to start server:", error.message);
+        process.exit(1);
+    }
+};
+
+startServer();
 
 export default app;
 
